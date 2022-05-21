@@ -6,32 +6,34 @@ from river.models import State, Workflow, TransitionApprovalMeta, TransitionMeta
 from base.models import Ticket
 
 
-from base.models import Ticket
+from base.models import Material
 
 
 # noinspection DuplicatedCode
 class Command(BaseCommand):
-    help = 'Bootstrapping database with necessary items'
+    help = 'Definindo o workflow do material'
 
     @transaction.atomic()
     def handle(self, *args, **options):
 
-        #
         workflow_content_type = ContentType.objects.get_for_model(Workflow)
 
         # Definindo o tipo do conteudo do workflow, localizado nas tabelas do django
-        content_type = ContentType.objects.get_for_model(Ticket)
+        content_type = ContentType.objects.get_for_model(Material)
 
-        add_ticket_permission = Permission.objects.get(codename="add_ticket", content_type=content_type)
-        change_ticket_permission = Permission.objects.get(codename="change_ticket", content_type=content_type)
-        delete_ticket_permission = Permission.objects.get(codename="delete_ticket", content_type=content_type)
+        add_permission = Permission.objects.get(codename="add_material", content_type=content_type)
+        change_permission = Permission.objects.get(codename="change_material", content_type=content_type)
+        delete_permission = Permission.objects.get(codename="delete_material", content_type=content_type)
 
         view_workflow_permission = Permission.objects.get(codename="view_workflow", content_type=workflow_content_type)
 
+        # Líder
         team_leader_group, _ = Group.objects.update_or_create(name="team_leaders")
-        team_leader_group.permissions.set([add_ticket_permission, change_ticket_permission, delete_ticket_permission, view_workflow_permission])
+        team_leader_group.permissions.set([add_permission, change_permission, delete_permission, view_workflow_permission])
+
+        # Developer
         developer_group, _ = Group.objects.update_or_create(name="developers")
-        developer_group.permissions.set([change_ticket_permission, delete_ticket_permission,view_workflow_permission])
+        developer_group.permissions.set([change_permission, view_workflow_permission])
 
         # Definindo os estados do workflow
         open_state, _ = State.objects.update_or_create(label="Open", slug="open")
@@ -39,7 +41,6 @@ class Command(BaseCommand):
         resolved_state, _ = State.objects.update_or_create(label="Resolved", slug="resolved")
         re_open_state, _ = State.objects.update_or_create(label="Re Open", slug="re_open")
         closed_state, _ = State.objects.update_or_create(label="Closed", slug="closed")
-        canceled_state, _ = State.objects.update_or_create(label="Canceled", slug="canceled")
 
         # Criando o workflow
         workflow, _ = Workflow.objects.update_or_create(content_type=content_type, field_name="status", defaults={"initial_state": open_state})
@@ -50,7 +51,6 @@ class Command(BaseCommand):
         resolved_to_closed, _ = TransitionMeta.objects.update_or_create(workflow=workflow, source_state=resolved_state, destination_state=closed_state)
         resolved_to_re_open, _ = TransitionMeta.objects.update_or_create(workflow=workflow, source_state=resolved_state, destination_state=re_open_state)
         re_open_to_in_progress, _ = TransitionMeta.objects.update_or_create(workflow=workflow, source_state=re_open_state, destination_state=in_progress_state)
-        in_progress_to_canceled , _ = TransitionMeta.objects.update_or_create(workflow=workflow, source_state=in_progress_state, destination_state=canceled_state)
 
         # Definindo as prioridades no workflow
         open_to_in_progress_meta, _ = TransitionApprovalMeta.objects.update_or_create(workflow=workflow, transition_meta=open_to_in_progress)
@@ -68,9 +68,6 @@ class Command(BaseCommand):
         re_open_to_in_progress_meta, _ = TransitionApprovalMeta.objects.update_or_create(workflow=workflow, transition_meta=re_open_to_in_progress)
         re_open_to_in_progress_meta.groups.set([developer_group])
 
-        in_progress_to_canceled, _ = TransitionApprovalMeta.objects.update_or_create(workflow=workflow, transition_meta=in_progress_to_canceled)
-        re_open_to_in_progress_meta.groups.set([team_leader_group])
-
         # Criando usuários e atribuindo em grupos
         root = User.objects.filter(username="root").first() or User.objects.create_superuser("root", "", "q1w2e3r4")
         root.groups.set([team_leader_group, developer_group])
@@ -82,11 +79,11 @@ class Command(BaseCommand):
         developer_1.groups.set([developer_group])
 
         # Criando um primeiro ticket para testes
-        ticket,created = Ticket.objects.update_or_create(
-            subject='Teste',
-            description='Teste de ticket'
+        material,created = Material.objects.update_or_create(
+            material='Teste de material',
+            quantity=1
         )
 
-        print(f"Ticket : {ticket.natural_key()}, com status {ticket.status} criado / atualizado com sucesso!")
+        print(f"Item : {material.natural_key()}, com status {material.status} criado / atualizado com sucesso!")
 
-        self.stdout.write(self.style.SUCCESS('Successfully bootstrapped the db '))
+        self.stdout.write(self.style.SUCCESS('Fluxo criado com sucesso '))

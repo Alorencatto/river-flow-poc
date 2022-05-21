@@ -37,7 +37,8 @@ INSTALLED_APPS = (
     'river',
     'rest_framework.authtoken',
     'river_admin',
-    'base'
+    'base',
+    'codemirror2'
 )
 
 REST_FRAMEWORK = {
@@ -89,6 +90,18 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'd88jinf748hn1j',
+#         'USER': 'klwdtwazgyuxar',
+#         'PASSWORD': '5760fd3ef4c9bbdbb3d9ecf97aaf9334d4336327d180695b6733941d3c04186e',
+#         'HOST': 'ec2-52-5-110-35.compute-1.amazonaws.com',
+#         'PORT': '5432',
+#     }
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators

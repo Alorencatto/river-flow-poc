@@ -19,3 +19,15 @@ class Ticket(models.Model):
     def natural_key(self):
         return self.no
 
+
+# Criando Modelo de processo de materiais
+class Material(models.Model):
+    no = models.CharField("Número da requisição", max_length=50, default=uuid.uuid4, null=False, blank=False, editable=False,
+                          unique=True)
+    material = models.CharField("Material", max_length=100, null=False, blank=False)
+    quantity = models.IntegerField("Quantidade")
+
+    status = StateField(editable=False)
+
+    def natural_key(self):
+        return self.no

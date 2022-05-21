@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from base.models import Ticket
+from base.models import Ticket,Material
 
 
 def create_river_button(obj, transition_approval):
@@ -18,6 +18,9 @@ def create_river_button(obj, transition_approval):
             onclick="location.href=\'{approve_ticket_url}\'"
         />
     """
+
+
+
 
 
 class TicketAdmin(admin.ModelAdmin):
@@ -37,6 +40,14 @@ class TicketAdmin(admin.ModelAdmin):
 
 admin.site.register(Ticket, TicketAdmin)
 
+class MaterialAdmin(admin.ModelAdmin):
+    list_display = ('no', 'material', 'quantity', 'status')
+
+    def get_list_display(self, request):
+        self.user = request.user
+        return super(MaterialAdmin, self).get_list_display(request)
+
+admin.site.register(Material, MaterialAdmin)
 
 class TicketRiverAdmin(river_admin.RiverAdmin):
     name = "Issue Tracking Flow"
